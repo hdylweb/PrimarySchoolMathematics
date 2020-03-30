@@ -37,7 +37,7 @@ Mail    : bosichong@qq.com
 from docx import Document  # 引入docx类生成docx文档
 from docx.shared import RGBColor
 from docx.shared import Pt
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
 __version__ = "1.0.0"
 
@@ -65,7 +65,7 @@ class PrintPreview:
     p_subtitle_size = None
     p_content_siae = None
 
-    def __init__(self, l, tit, subtitle, col=3, tsize=26, subsize=11, csize=16):
+    def __init__(self, l, tit, subtitle, col=3, tsize=26, subsize=11, csize=24):
         '''
         :param l: list 需要打印的口算题列表
         :param tit: list 口算页标题
@@ -90,19 +90,23 @@ class PrintPreview:
         :return: none
         '''
         if (title == ''):
-            page_title = '小学生口算题'
+            page_title = '算术题'
         else:
             page_title = title
         p_docx = Document()  # 创建一个docx文档
-        p_docx.styles['Normal'].font.name = u'Times'  # 可换成word里面任意字体
+        p_docx.styles['Normal'].font.name = u'Arial'  # 可换成word里面任意字体
+        p_docx.styles['Normal'].paragraph_format.space_before = Pt(5)
+        p_docx.styles['Normal'].paragraph_format.space_after = Pt(5)
+        p_docx.styles['Normal'].font.size = Pt(self.p_content_siae)
+
         p = p_docx.add_paragraph()
-        p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 段落文字居中设置
+        p.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
         run = p.add_run(page_title)
         run.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
         run.font.size = Pt(self.p_title_size)  # 字体大小设置，和word里面的字号相对应
 
         sp = p_docx.add_paragraph()
-        sp.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER  # 段落文字居中设置
+        sp.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
         srun = sp.add_run(self.p_subtitle)
         srun.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
         srun.font.size = Pt(self.p_subtitle_size)  # 字体大小设置，和word里面的字号相对应
@@ -118,6 +122,11 @@ class PrintPreview:
         # 将口算题添加到docx表格中
         k = 0  # 计数器
         table = p_docx.add_table(rows=rs, cols=self.p_column)
+        table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        # table.style.paragraph_format.space_before = Pt(5)
+        # table.style.paragraph_format.space_after = Pt(5)
+        table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+        table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
 
         for i in range(rs):
             if i >0:
@@ -128,9 +137,7 @@ class PrintPreview:
                     else:
                         row_cells[j].text = l[k]
                         k = k + 1
-        table.style.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
-        table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
+
         p_docx.save('{}.docx'.format(docxname))  # 输出docx
 
     def produce(self):

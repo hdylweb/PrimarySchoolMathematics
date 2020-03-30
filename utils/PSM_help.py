@@ -331,9 +331,9 @@ def getXStepstr(src, is_result):
     :return: str
     '''
     if is_result == 0:
-        return repSymStr(src) + "="
+        return repSymStr(src) + " = "
     elif is_result == 1:
-        return getRandomItem(repSymStr(src) + "=" + str(int(eval(src))))
+        return getRandomItem(repSymStr(src) + " = " + str(int(eval(src))))
     else:
         raise Exception("is_result求结果，求算数项参数设置错误！")
 
@@ -379,13 +379,13 @@ def getSymbol(sym):
     :return: str
     '''
     if sym == 1:
-        return "+"
+        return " + "
     elif sym == 2:
-        return "-"
+        return " - "
     elif sym == 3:
-        return "*"
+        return " * "
     elif sym == 4:
-        return "/"
+        return " / "
 
 
 def getRandomSymbols(symbols, step):

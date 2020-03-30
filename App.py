@@ -94,7 +94,7 @@ class MyFrame(wx.Frame):
                                        style=wx.TE_LEFT)
         self.button_8 = wx.Button(self, wx.ID_ANY, u"点此生成口算题打印文档")
 
-        self.app_title = "基于Python开发的小学生口算题生成器"
+        self.app_title = "算术题生成器"
         self.info_tit = "还没添加任何口算题到卷子中，请点击添加口算题按钮开始添加口算题！"  # 当前口算题卷子包含内容
 
 
