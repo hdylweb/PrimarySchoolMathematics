@@ -342,6 +342,7 @@ class MyFrame(wx.Frame):
             # 循环生成每套题
 
             for i in range(int(self.text_ctrl_2.GetValue())):
+                print('开始生成第' + str(i) + '套试题：')
                 templist = []
                 for l in self.psm_type:
                     print(l)

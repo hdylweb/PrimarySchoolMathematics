@@ -35,7 +35,9 @@ Mail    : bosichong@qq.com
 '''
 
 from docx import Document  # 引入docx类生成docx文档
-from docx.shared import RGBColor
+from docx.enum.table import WD_ROW_HEIGHT_RULE
+from docx.oxml.ns import qn
+from docx.shared import RGBColor, Cm
 from docx.shared import Pt
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 
@@ -65,7 +67,7 @@ class PrintPreview:
     p_subtitle_size = None
     p_content_siae = None
 
-    def __init__(self, l, tit, subtitle, col=3, tsize=26, subsize=11, csize=24):
+    def __init__(self, l, tit, subtitle, col=2, tsize=20, subsize=16, csize=18):
         '''
         :param l: list 需要打印的口算题列表
         :param tit: list 口算页标题
@@ -94,22 +96,32 @@ class PrintPreview:
         else:
             page_title = title
         p_docx = Document()  # 创建一个docx文档
+        # 定义正文格式
         p_docx.styles['Normal'].font.name = u'Arial'  # 可换成word里面任意字体
         p_docx.styles['Normal'].paragraph_format.space_before = Pt(5)
         p_docx.styles['Normal'].paragraph_format.space_after = Pt(5)
         p_docx.styles['Normal'].font.size = Pt(self.p_content_siae)
+        # 定义标题格式
+        p_docx.styles['Heading 1'].paragraph_format.space_before = Pt(12)
+        p_docx.styles['Heading 1'].paragraph_format.space_after = Pt(12)
 
-        p = p_docx.add_paragraph()
-        p.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
-        run = p.add_run(page_title)
-        run.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
-        run.font.size = Pt(self.p_title_size)  # 字体大小设置，和word里面的字号相对应
+        # 定义标题格式
+        paragraph_title = p_docx.add_paragraph()
+        paragraph_title.style = p_docx.styles['Heading 1']
+        paragraph_title.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
+        run_title = paragraph_title.add_run(page_title)
+        run_title.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+        run_title.font.size = Pt(self.p_title_size)  # 字体大小设置，和word里面的字号相对应
+        run_title.font.name = u'Arial'
+        run_title = self.setZhFont(run_title, u'楷体')
 
         sp = p_docx.add_paragraph()
         sp.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
         srun = sp.add_run(self.p_subtitle)
         srun.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
         srun.font.size = Pt(self.p_subtitle_size)  # 字体大小设置，和word里面的字号相对应
+        srun.font.name = u'Arial'
+        srun = self.setZhFont(srun, u'楷体')
 
         # 判断需要用到的行数
         if (len(l) % self.p_column):
@@ -123,10 +135,10 @@ class PrintPreview:
         k = 0  # 计数器
         table = p_docx.add_table(rows=rs, cols=self.p_column)
         table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        # table.style.paragraph_format.space_before = Pt(5)
-        # table.style.paragraph_format.space_after = Pt(5)
         table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
         table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
+        table.rows.height_rule = WD_ROW_HEIGHT_RULE.EXACTLY
+        # table.rows.height = Cm(2)
 
         for i in range(rs):
             if i >0:
@@ -138,7 +150,22 @@ class PrintPreview:
                         row_cells[j].text = l[k]
                         k = k + 1
 
+        for row in table.rows:
+            row.height = Cm(1.7)
+
         p_docx.save('{}.docx'.format(docxname))  # 输出docx
+
+    def setZhFont(self, run, zhFontName):
+        """
+        设置字体，含西文（数字）字体、中文字体
+        :param run: 待设置的行
+        :param fontName: 西文（数字）字体
+        :param zhFontName: 中文字体
+        :return:
+        """
+        run._element.rPr.rFonts.set(qn('w:eastAsia'), zhFontName)
+        return run
+
 
     def produce(self):
         k = 1
