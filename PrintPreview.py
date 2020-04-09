@@ -84,9 +84,9 @@ class PrintPreview:
         self.p_subtitle_size = subsize
         self.p_content_siae = csize
 
-    def create_psmdocx(self, l, title, docxname):
+    def create_psmdocx(self, expressionList, title, docxname):
         '''
-        :param l list 一组题库
+        :param expressionList list 一组题库
         :param title str 页面标题
         :param docxname  str 题库保存文件名
         :return: none
@@ -96,64 +96,78 @@ class PrintPreview:
         else:
             page_title = title
         p_docx = Document()  # 创建一个docx文档
-        # 定义正文格式
+        # 自定义正文格式
         p_docx.styles['Normal'].font.name = u'Arial'  # 可换成word里面任意字体
         p_docx.styles['Normal'].paragraph_format.space_before = Pt(5)
         p_docx.styles['Normal'].paragraph_format.space_after = Pt(5)
         p_docx.styles['Normal'].font.size = Pt(self.p_content_siae)
-        # 定义标题格式
+        # 自定义标题格式
         p_docx.styles['Heading 1'].paragraph_format.space_before = Pt(12)
         p_docx.styles['Heading 1'].paragraph_format.space_after = Pt(12)
-
-        # 定义标题格式
-        paragraph_title = p_docx.add_paragraph()
-        paragraph_title.style = p_docx.styles['Heading 1']
-        paragraph_title.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
-        run_title = paragraph_title.add_run(page_title)
-        run_title.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
-        run_title.font.size = Pt(self.p_title_size)  # 字体大小设置，和word里面的字号相对应
-        run_title.font.name = u'Arial'
-        run_title = self.setZhFont(run_title, u'楷体')
-
-        sp = p_docx.add_paragraph()
-        sp.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
-        srun = sp.add_run(self.p_subtitle)
-        srun.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
-        srun.font.size = Pt(self.p_subtitle_size)  # 字体大小设置，和word里面的字号相对应
-        srun.font.name = u'Arial'
-        srun = self.setZhFont(srun, u'楷体')
+        p_docx.styles['Heading 1'].paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
 
         # 判断需要用到的行数
-        if (len(l) % self.p_column):
-            rs = len(l) // self.p_column + 2
+        if (len(expressionList) % self.p_column == 0):
+            rs = len(expressionList) // self.p_column
         else:
-            rs = len(l) // self.p_column +1
+            rs = len(expressionList) // self.p_column + 1
 
         # print(rs)
 
         # 将口算题添加到docx表格中
-        k = 0  # 计数器
-        table = p_docx.add_table(rows=rs, cols=self.p_column)
-        table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
-        table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
-        table.rows.height_rule = WD_ROW_HEIGHT_RULE.EXACTLY
-        # table.rows.height = Cm(2)
-
+        # 每页10行
+        tableRows = 10
         for i in range(rs):
-            if i >0:
-                row_cells = table.rows[i].cells
+            if (i % tableRows == 0):
+                if i > 0:
+                    # 添加分页符
+                    p_docx.add_page_break()
+                # 添加页头内容
+                self.addPageHeader(p_docx, page_title)
+                # 添加算式到表格
+                table = p_docx.add_table(rows=tableRows, cols=self.p_column)
+                # 自定义行高
+                for row in table.rows:
+                    row.height = Cm(1.8)
+                table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+                table.style.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+                table.style.font.size = Pt(self.p_content_siae)  # 字体大小设置，和word里面的字号相对应
+                table.rows.height_rule = WD_ROW_HEIGHT_RULE.EXACTLY
+                k = 0  # 计数器
+
+            # for i in range(rs):
+            if i%tableRows >= 0:
+                row_cells = table.rows[i%tableRows].cells
                 for j in range(self.p_column):
-                    if (k > len(l) - 1):
+                    columnIndex = 2 * i + j
+                    if (columnIndex > len(expressionList) - 1):
+                        print('第{}行、第{}列，超出算式列表总数{}'.format(i, columnIndex, len(expressionList)))
                         break
                     else:
-                        row_cells[j].text = l[k]
+                        row_cells[j].text = expressionList[columnIndex]
                         k = k + 1
 
-        for row in table.rows:
-            row.height = Cm(1.7)
-
         p_docx.save('{}.docx'.format(docxname))  # 输出docx
+
+    def addPageHeader(self, p_docx, page_title):
+        # 新建标题并应用格式
+        paragraph_title = p_docx.add_paragraph()
+        paragraph_title.style = p_docx.styles['Heading 1']
+        title = paragraph_title.add_run(page_title)
+        title.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+        title.font.size = Pt(self.p_title_size)  # 字体大小设置，和word里面的字号相对应
+        title.font.name = u'楷体'
+        title = self.setZhFont(title, u'楷体')
+        # 新建子标题，设置字体大小
+        subTitle = p_docx.add_paragraph()
+        subTitle.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # 段落文字居中设置
+        srun = subTitle.add_run(self.p_subtitle)
+        srun.font.color.rgb = RGBColor(54, 0, 0)  # 颜色设置，这里是用RGB颜色
+        srun.font.size = Pt(self.p_subtitle_size)  # 字体大小设置，和word里面的字号相对应
+        srun.font.name = u'Arial'
+        srun = self.setZhFont(srun, u'楷体')
+        # 添加空行
+        p_docx.add_paragraph()
 
     def setZhFont(self, run, zhFontName):
         """
@@ -168,6 +182,10 @@ class PrintPreview:
 
 
     def produce(self):
+        '''
+        生成.docx文档
+        :return:
+        '''
         k = 1
         for l, t in zip(self.p_list, self.p_title):
             self.create_psmdocx(l, t, t + str(k))
