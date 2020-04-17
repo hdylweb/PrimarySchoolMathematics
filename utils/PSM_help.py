@@ -288,6 +288,12 @@ def getPSMstr(formulas, symbols, step, is_bracket):
     ss = ""
     sym = getRandomSymbols(symbols, step)
     for i in range(step):
+        # 如果是减法：确保被减数 > 减数
+        if(getSymbol(sym[i]) == getSymbol(2) and (formulas[i * 2] < formulas[i * 2 + 1])):
+            temp = formulas[i * 2]
+            formulas[i * 2] = formulas[i * 2 + 1]
+            formulas[i * 2 + 1] = temp
+
         formulas.insert(i * 2 + 1, getSymbol(sym[i]))
 
     if is_bracket:
