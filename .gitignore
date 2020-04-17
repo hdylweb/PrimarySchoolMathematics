@@ -1,8 +1,7 @@
 
 *.docx
 __pycache__
-.idea
-.idea/workspace.xml
+.idea/
 docx
 .ini
 
