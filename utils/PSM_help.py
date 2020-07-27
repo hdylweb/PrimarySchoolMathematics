@@ -61,8 +61,11 @@ def f3(s):
     :param s: 算式
     :return:加减法算式
     '''
-    ss = re.search("\d+[\+\-]\d+", s)
+
+    print("搜索加减法算式：" + s)
+    ss = re.search("\d+\s[\+\-]\s\d+", s)
     if ss:
+        print("返回加减法算式：" + ss.group(0))
         return ss.group(0)
 
 
@@ -145,6 +148,7 @@ def validator2(s, result, carry, abdication):
     # 加减法验证
     while f3(s):
         f = f3(s)
+        print(s + " 搜索加减法返回： " + f)
         # print(f)
         if isAddSub(f, result, carry, abdication):
             r = eval(f)
